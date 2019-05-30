@@ -1,0 +1,29 @@
+---
+- name: Copy repo tar file
+  copy:
+    src: asme-frontend.tar.gz
+    dest: /tmp/asme-frontend.tar.gz
+    owner: root
+    group: root
+    mode: 0644
+
+- name: create tmp file directory
+  file:
+    path: /tmp/vtr
+    state: directory
+    mode: 0755
+
+- name: Extract asme-frontend.tar.gz into /tmp/vtr
+  unarchive:
+    src: asme-frontend.tar.gz
+    dest: /tmp/vtr
+
+- name: docker build
+  shell: cd /tmp/vtr && docker build -t myapp:{{ gitcommit }} .
+
+- name: remove docker
+  shell: docker stop myapp && docker rm myapp
+  ignore_errors: yes
+
+- name: start docker
+  shell: docker run -d --name=myapp -p 80:3000 myapp:{{ gitcommit }}
